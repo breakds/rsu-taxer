@@ -92,9 +92,12 @@ def compute_taxes(num_shares: int, price_per_share: float, other_income: float) 
 
 if __name__ == "__main__":
     console = Console()
-    num_shares = 1000
-    price_per_share = 100
-    other_income = 150000
+    num_shares = int(input("Enter the number of RSU shares: "))
+    console.print(f"Number of shares: {num_shares}")
+    price_per_share = float(input("Enter the price per share at tax day: "))
+    console.print(f"Price per share: {price_per_share}")
+    other_income = float(input("Enter your other income: "))
+    console.print(f"Other income: {other_income}")
     taxes = compute_taxes(num_shares, price_per_share, other_income)
     console.print(f"Federal Tax: {taxes.federal_tax}")
     console.print(f"California Tax: {taxes.california_tax}")
