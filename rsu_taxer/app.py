@@ -31,9 +31,11 @@ class TaxEstimate(NamedTuple):
     total_tax: float
     withholding: float
     net_after_tax: float
+    break_even_price: float
 
-def compute_taxes(rsu_income: float, total_income: float) -> TaxEstimate:
-    """Compute estimated tax liabilities for RSUs in California."""
+def compute_taxes(num_shares: int, price_per_share: float, other_income: float) -> TaxEstimate:
+    rsu_income = num_shares * price_per_share
+    total_income = rsu_income + other_income
     
     def progressive_tax(income, brackets):
         tax = 0
@@ -71,8 +73,8 @@ def compute_taxes(rsu_income: float, total_income: float) -> TaxEstimate:
     california_withholding = rsu_income * CALIFORNIA_WITHHOLDING_RATE
     total_withholding = federal_withholding + california_withholding + social_security_tax + medicare_tax
 
-    # Net amount after tax
     net_after_tax = rsu_income - total_tax
+    break_even_price = total_tax / num_shares
 
     return TaxEstimate(
         federal_tax=round(federal_tax, 2),
@@ -81,13 +83,16 @@ def compute_taxes(rsu_income: float, total_income: float) -> TaxEstimate:
         medicare_tax=round(medicare_tax, 2),
         total_tax=round(total_tax, 2),
         withholding=round(total_withholding, 2),
-        net_after_tax=round(net_after_tax, 2)
+        net_after_tax=round(net_after_tax, 2),
+        break_even_price=round(break_even_price, 2)
     )
 
 
 if __name__ == "__main__":
     # Example usage
-    rsu_income = 100000  # Example RSU income
-    total_income = 250000  # Example total taxable income
-    taxes = compute_taxes(rsu_income, total_income)
+    num_shares = 1000  # Example number of RSU shares
+    price_per_share = 100  # Example price per share at tax day
+    other_income = 150000  # Example other income
+    taxes = compute_taxes(num_shares, price_per_share, other_income)
     print(taxes)
+    print(f"Break-even price per share: {taxes.break_even_price}")
