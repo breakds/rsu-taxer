@@ -22,6 +22,7 @@ in {
           with p; [
             numpy
             rich
+            openpyxl
           ]))
         pyright
         ruff
