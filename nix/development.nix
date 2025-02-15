@@ -21,6 +21,7 @@ in {
         (python3.withPackages (p:
           with p; [
             numpy
+            rich
           ]))
         pyright
         ruff
