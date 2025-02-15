@@ -1,4 +1,6 @@
 from typing import NamedTuple
+from rich.console import Console
+from rich import print
 
 # Define tax brackets and rates
 FEDERAL_BRACKETS = [
@@ -89,10 +91,16 @@ def compute_taxes(num_shares: int, price_per_share: float, other_income: float) 
 
 
 if __name__ == "__main__":
-    # Example usage
-    num_shares = 1000  # Example number of RSU shares
-    price_per_share = 100  # Example price per share at tax day
-    other_income = 150000  # Example other income
+    console = Console()
+    num_shares = 1000
+    price_per_share = 100
+    other_income = 150000
     taxes = compute_taxes(num_shares, price_per_share, other_income)
-    print(taxes)
-    print(f"Break-even price per share: {taxes.break_even_price}")
+    console.print(f"Federal Tax: {taxes.federal_tax}")
+    console.print(f"California Tax: {taxes.california_tax}")
+    console.print(f"Social Security Tax: {taxes.social_security_tax}")
+    console.print(f"Medicare Tax: {taxes.medicare_tax}")
+    console.print(f"Total Tax: {taxes.total_tax}")
+    console.print(f"Withholding: {taxes.withholding}")
+    console.print(f"Net After Tax: {taxes.net_after_tax}")
+    console.print(f"Break-even price per share: {taxes.break_even_price}")
