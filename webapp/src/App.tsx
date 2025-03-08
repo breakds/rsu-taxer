@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, ChangeEvent} from 'react'
 import './App.css'
 import { Segment, Input, Label, Button
 } from 'semantic-ui-react'
@@ -17,7 +17,7 @@ function App() {
   const fetchPnl = async() => {
     try {
       const response = await fetch(`${serverUrl}/pnl?settlement=${settlement}&shares=${shares}&longterm=${longTerm}&shorterm=${shortTerm}`)
-      const payload: Product[] = await response.json()
+      const payload: PlotResponse = await response.json()
       setPnl(payload)
     } catch (error) {
       // TODO: prompt to better handle the error
@@ -27,28 +27,28 @@ function App() {
 
   useEffect(() => { fetchPnl() }, [])
 
-  const onSetSettlement = (event) => {
+  const onSetSettlement = (event: ChangeEvent<HTMLInputElement>) => {
     const value = event.target.value
     if (!isNaN(Number(value))) {
       setSettlement(event.target.value)
     }
   }
 
-  const onSetShares = (event) => {
+  const onSetShares = (event: ChangeEvent<HTMLInputElement>) => {
     const value = event.target.value
     if (!isNaN(Number(value))) {
       setShares(event.target.value)
     }
   }
 
-  const onSetLongTerm = (event) => {
+  const onSetLongTerm = (event: ChangeEvent<HTMLInputElement>) => {
     const value = event.target.value
     if (!isNaN(Number(value))) {
       setLongTerm(event.target.value)
     }
   }
 
-  const onSetShortTerm = (event) => {
+  const onSetShortTerm = (event: ChangeEvent<HTMLInputElement>) => {
     const value = event.target.value
     if (!isNaN(Number(value))) {
       setShortTerm(event.target.value)
