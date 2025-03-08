@@ -23,7 +23,7 @@ app.add_middleware(
 FRONTEND_PATH = Path(
     os.getenv(
         "PNL_FRONTEND",
-        str(Path(__file__).parent.parent / "webapp" / "dist"),
+        str(Path(__file__).parent.parent / "webapp" / "src"),
     )
 )
 app.mount("/assets", StaticFiles(directory=FRONTEND_PATH / "assets", html=True))

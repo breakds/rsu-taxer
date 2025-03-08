@@ -9,7 +9,7 @@ ORDINARY_RATE = 0.51
 
 
 def calculate_pnl_curves(settlement_price: float, num_shares: int, long_term_capital_gain: float, short_term_capital_gain: float) -> PlotResponse:
-    sell_prices = np.arange(0.0, settlement_price * 1.2, 0.1)
+    sell_prices = np.arange(0.0, settlement_price * 1.5, 0.1)
 
     # TODO(breakds): Precise withhold tax rate
     withhold = settlement_price * num_shares * 0.5
@@ -20,7 +20,8 @@ def calculate_pnl_curves(settlement_price: float, num_shares: int, long_term_cap
 
     # Part II: tax save
     tax_save = np.zeros_like(sold)
-    capital_loss = np.where(sold < withhold, withhold - sold, 0.0)
+    capital_loss = np.where(sell_prices < settlement_price,
+                            (settlement_price - sell_prices) * num_shares, 0.0)
 
     # Save on Ordinary Income
     deductible = np.where(capital_loss > 3000.0, 3000.0, capital_loss)
@@ -49,7 +50,8 @@ def calculate_pnl_curves(settlement_price: float, num_shares: int, long_term_cap
         mode="line",
         stackgroup="pnl",
         fill="tonexty",
-        name="Net Cashflow")
+        marker={"color": "orange"},
+        name="Cashflow")
     tax_save_curve = PlotData(
         x=sell_prices.tolist(),
         y=tax_save.tolist(),
@@ -57,19 +59,20 @@ def calculate_pnl_curves(settlement_price: float, num_shares: int, long_term_cap
         mode="line",
         stackgroup="pnl",
         fill="tonexty",
-        name="Tax Save")
+        marker={"color": "blue"},
+        name="+ Tax Save")
     cash_curve = PlotData(
         x=sell_prices.tolist(),
-        y=tax_save.tolist(),
+        y=np.full_like(sell_prices, withhold).tolist(),
         type="scatter",
         mode="line",
         marker={"color": "red"},
-        name="Tax Save")
+        name="Withhold (Upfront)")
 
     return PlotResponse(
         data=[net_cashflow_curve, tax_save_curve, cash_curve],
         layout=PlotLayout(
-            title={"text": "收益损失曲线"},
-            xaxis={"title": "解禁后出售价格"},
-            yaxis={"title": "金额($)"}),
+            title={"text": "收益损失曲线(最终净收益看蓝线)"},
+            xaxis={"title": {"text": "解禁后出售价格"}},
+            yaxis={"title": {"text": "金额($)"}}),
     )
