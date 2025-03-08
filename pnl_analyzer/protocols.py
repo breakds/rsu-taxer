@@ -17,6 +17,9 @@ class PlotData(Protocol):
     mode: str = "lines"
     marker: dict = {"color": "red"}
     name: str | None = None
+    stackgroup: str | None = None
+    fill: str | None = None
+    
 
 
 class PlotLayout(Protocol):

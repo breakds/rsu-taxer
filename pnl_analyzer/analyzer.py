@@ -7,6 +7,7 @@ from pathlib import Path
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
 
+from pnl_analyzer.calc import calculate_pnl_curves
 from pnl_analyzer.protocols import PlotResponse
 
 app = FastAPI()
@@ -39,12 +40,16 @@ async def serve_ui():
     response_model_by_alias=True,
 )
 async def pnl(
-    longterm: str = Query(..., description="Amount of long-term capital gain in $"),
-    shorterm: str = Query(..., description="Amount of short-term capital gain in $"),
-    settlement: str = Query(..., description="The settlement price in $"),
-    shares: str = Query(..., description="The number of shares"),
+    longterm: float = Query(..., description="Amount of long-term capital gain in $"),
+    shorterm: float = Query(..., description="Amount of short-term capital gain in $"),
+    settlement: float = Query(..., description="The settlement price in $"),
+    shares: int = Query(..., description="The number of shares"),
 ) -> PlotResponse:
-    return PlotResponse()
+    return calculate_pnl_curves(
+        settlement_price=settlement,
+        num_shares=shares,
+        short_term_capital_gain=shorterm,
+        long_term_capital_gain=longterm)
 
 
 def main():
