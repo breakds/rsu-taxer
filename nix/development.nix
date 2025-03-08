@@ -23,11 +23,18 @@ in {
             numpy
             rich
             openpyxl
+            fastapi
+            plotly
+            pydantic
+            uvicorn
           ]))
         pyright
         ruff
         pre-commit
         hatch
+
+        pnpm_10
+        nodejs        
       ];
 
       shellHook = ''
