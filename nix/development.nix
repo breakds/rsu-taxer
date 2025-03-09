@@ -27,6 +27,7 @@ in {
             plotly
             pydantic
             uvicorn
+            questionary
           ]))
         pyright
         ruff

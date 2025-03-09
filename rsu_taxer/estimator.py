@@ -1,4 +1,7 @@
 from pydantic import BaseModel
+import questionary
+from rich.table import Table
+from rich.console import Console
 
 
 class TaxSummaryUS(BaseModel):
@@ -8,11 +11,27 @@ class TaxSummaryUS(BaseModel):
     social_security: float
     medicare: float
 
+    def __rich__(self):
+        table = Table(title="US Tax Summary")
+        table.add_column("Tax Type", justify="right", style="cyan", no_wrap=True)
+        table.add_column("Amount", style="magenta")
+        table.add_row("Total Income", f"${self.income:,.2f}", style="green")
+        table.add_row("Federal Tax", f"${self.federal:,.2f}")
+        table.add_row("State Tax", f"${self.state:,.2f}")
+        table.add_row("Social Security Tax", f"${self.social_security:,.2f}")
+        table.add_row("Medicare", f"${self.medicare:,.2f}")
+
+        total_tax = self.federal + self.state + self.social_security + self.medicare
+        actual_rate = total_tax / self.income
+        table.add_row("Tax%", f"{actual_rate * 100.0:,.2f}%", style="yellow")
+        table.add_row("Total Tax", f"${total_tax:,.2f}", style="green")
+        return table
+
 
 # Federal and California tax brackets for married filing jointly (2024)
 FEDERAL_TAX_BRACKETS: list[tuple[float, float]] = [
     (0, 0.10), (23_200, 0.12), (94_300, 0.22), (201_050, 0.24),
-    (383_900, 0.32), (487_450, 0.35), (731_200, 0.37)
+    (383_900, 0.32), (487_450, 0.35), (731_200, 0.37),
 ]
 
 CALIFORNIA_TAX_BRACKETS: list[tuple[float, float]] = [
@@ -49,15 +68,21 @@ CHINA_TAX_BRACKETS: list[tuple[float, float]] = [
 def compute_progressive_tax(income: float, brackets: list[tuple[float, float]]) -> float:
     """Compute progressive tax based on tax brackets."""
     tax = 0.0
-    previous_bracket = 0.0
+    previous_bracket = brackets[0][0]
+    rate = brackets[0][1]
 
-    for bracket, rate in brackets:
+    for bracket, new_rate in brackets[1:]:
         if income > bracket:
-            tax += (bracket - previous_bracket) * rate
+            segment = (bracket - previous_bracket) * rate
+            tax += segment
             previous_bracket = bracket
+            rate = new_rate
         else:
             tax += (income - previous_bracket) * rate
             break
+
+    if income > brackets[-1][0]:
+        tax += (income - brackets[-1][0]) * brackets[-1][1]
 
     return tax
 
@@ -105,3 +130,67 @@ def compute_china_tax(num_shares: int, fmv: float, base_income: float = 0.0) -> 
     rmb = num_shares * fmv * 7.24
     return compute_progressive_tax(rmb, CHINA_TAX_BRACKETS)
 
+
+
+def main():
+    console = Console()
+
+    # Select Country
+    country = questionary.select(
+        "Select your country:",
+        choices=[
+            "US",
+            "CN",
+        ]
+    ).ask()
+
+    if country == "US":
+        # Select State
+        state = questionary.select(
+            "Select your state:",
+            choices=[
+                "CA",
+                "MD",
+                "Other",
+            ]
+        ).ask()
+
+        # Get Number of Shares and FMV
+        num_shares = questionary.text("Enter the number of shares:").ask()
+        fair_market_value = questionary.text("Enter the fair market value per share:").ask()
+
+        # Validate that num_shares and fair_market_value are numbers
+        try:
+            num_shares = int(num_shares)
+            fair_market_value = float(fair_market_value)
+        except ValueError:
+            console.print("Invalid input: Number of shares and fair market value must be numbers.")
+            return
+
+        # Compute US Tax
+        tax_summary = compute_us_tax(num_shares, fair_market_value, state)
+        console.print(tax_summary)
+
+    elif country == "CN":
+        # Get Number of Shares and FMV
+        num_shares = questionary.text("Enter the number of shares:").ask()
+        fair_market_value = questionary.text("Enter the fair market value per share:").ask()
+
+        # Validate that num_shares and fair_market_value are numbers
+        try:
+            num_shares = int(num_shares)
+            fair_market_value = float(fair_market_value)
+        except ValueError:
+            console.print("Invalid input: Number of shares and fair market value must be numbers.")
+            return
+
+        # Compute China Tax
+        tax = compute_china_tax(num_shares, fair_market_value)  # Replace with actual function call
+        console.print(f"China Tax: ${tax:,.2f}")
+
+    else:
+        console.print("Invalid country selection.")
+
+
+if __name__ == "__main__":
+    main()
